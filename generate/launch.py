@@ -38,7 +38,7 @@ def run_blender(gpu_id):
             {blender_path} \
             data/base_scene.blend \
             --background --python render_videos.py -- \
-            --num_images 50000 \
+            --num_images 1 \
             --suppress_blender_logs \
             --save_blendfiles 1 \
             {cam_motion} \
