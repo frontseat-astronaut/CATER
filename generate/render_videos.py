@@ -421,9 +421,33 @@ def setup_scene(
     objects, blender_objects = add_random_objects(
         scene_struct, num_objects, args, camera)
     record = MovementRecord(blender_objects, args.num_frames)
+    
+    logging.info(objects[0].keys())
+    
     actions.random_objects_movements(
         objects, blender_objects, args, args.num_frames, args.min_dist,
         record, max_motions=args.max_motions)
+    
+    logging.info(objects[0].keys())
+    
+    scene = bpy.context.scene
+    cam_ob = scene.camera
+    
+    for fr in range(args.num_frames):
+        bpy.context.scene.frame_set(fr)
+        for ob_i in range(len(objects)):
+            ob = blender_objects[ob_i]
+            
+            bbox = camera_view_bounds_2d(scene, cam_ob, ob)
+            if fr == 0:
+                objects[ob_i]['bbox'] = {}
+                objects[ob_i]['blender_locations'] = {}
+            objects[ob_i]['bbox'][fr] = {
+                'x': bbox.x,
+                'y': bbox.y,
+                'width': bbox.width,
+                'height': bbox.height}
+            objects[ob_i]['blender_locations'][fr] = [ob.location.x,ob.location.y,ob.location.z] 
 
     # Render the scene and dump the scene data structure
     scene_struct['objects'] = objects
@@ -708,13 +732,6 @@ def add_random_objects(scene_struct, num_objects, args, camera):
         # Record data about the object in the scene data structure
         pixel_coords = utils.get_camera_coords(camera, obj.location)
         
-        # Get 2D pixel coordinates for all 8 points in the bounding box
-        scene = bpy.context.scene
-        cam_ob = scene.camera
-        me_ob = bpy.context.object
-
-        bound_box = camera_view_bounds_2d(bpy.context.scene, cam_ob, me_ob)
-        
         objects.append({
             'shape': obj_name_out,
             'size': size_name,
@@ -725,10 +742,6 @@ def add_random_objects(scene_struct, num_objects, args, camera):
             'pixel_coords': pixel_coords,
             'color': color_name,
             'instance': obj.name,
-            'x': bound_box.x,
-            'y': bound_box.y,
-            'width': bound_box.width,
-            'height': bound_box.height
         })
     return objects, blender_objects
 
@@ -856,8 +869,7 @@ def add_flips(blender_objects, num_flips=10, total_frames=300):
         current_frame = end_frame + 1
     bpy.ops.screen.frame_jump(end=False)
 
-
-
+    
 class Box:
 
     dim_x = 1
@@ -963,6 +975,7 @@ def camera_view_bounds_2d(scene, cam_ob, me_ob):
     return Box(min_x, min_y, max_x, max_y, dim_x, dim_y)
 
 
+    
 def clamp(x, minimum, maximum):
     return max(minimum, min(x, maximum))
 

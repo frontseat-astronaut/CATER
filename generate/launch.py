@@ -33,8 +33,6 @@ def run_blender(gpu_id):
     subprocess.call('sleep {}'.format(sleep_time), shell=True)
     cmd = '''
         CUDA_VISIBLE_DEVICES="{gpu_id}" \
-            singularity exec --nv -B /data:{data_mount_point} \
-            /home/rgirdhar/Software/singularity/spec_v0.img \
             {blender_path} \
             data/base_scene.blend \
             --background --python render_videos.py -- \
@@ -49,8 +47,8 @@ def run_blender(gpu_id):
         gpu_id=gpu_id,
         cam_motion='--random_camera' if CAM_MOTION else '',
         max_motions='--max_motions={}'.format(MAX_MOTIONS),
-        blender_path='/home/rgirdhar/Software/graphics/blender/blender-2.79b-linux-glibc219-x86_64/blender',  # noQA
-        output_dir='{}/rgirdhar/CATER-release/{}/'.format(DATA_MOUNT_POINT, OUT_DIR),  # noQA
+        blender_path='~/clevr/blender-2.79b-linux-glibc219-x86_64/blender',  # noQA
+        output_dir='~/clevr/CATER_data/',
         data_mount_point=DATA_MOUNT_POINT)
     print('Running {}'.format(final_cmd))
     subprocess.call(final_cmd, shell=True)
@@ -65,6 +63,6 @@ else:
 ngpus = len(gpu_ids)
 print('Found {} GPUs. Using all of those.'.format(ngpus))
 # Repeat jobs per GPU
-gpu_ids *= args.num_jobs
+#gpu_ids *= args.num_jobs
 pool = mp.Pool(len(gpu_ids))
 pool.map(run_blender, gpu_ids)
